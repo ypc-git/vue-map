@@ -13,6 +13,8 @@
 			return {
 				pointLng:null,
 				pointLat:null,
+				points:null,
+				map:null
 			}
 		},
 		props: {
@@ -21,17 +23,19 @@
 		methods: {
 			createMap:function () {
 				var _this = this;
-				var map = new BMap.Map("allmap")
+				this.map = new BMap.Map("allmap")
+				let _map = this.map;
 				var point = new BMap.Point(116.331398,39.897445);
-				map.centerAndZoom(point,18);
+				_map.centerAndZoom(point,18);
 				var geolocation = new BMap.Geolocation();
 				geolocation.getCurrentPosition(function(r){
 					if(this.getStatus() == BMAP_STATUS_SUCCESS){
 						var myIcon = new BMap.Icon("http://api.map.baidu.com/img/markers.png", new BMap.Size(20,25));
+
 						var mk = new BMap.Marker(r.point,{icon:myIcon});
-						map.addOverlay(mk);
+						_map.addOverlay(mk);
 						mk.setAnimation(BMAP_ANIMATION_BOUNCE);
-						map.panTo(r.point);
+						_map.panTo(r.point);
 						debugger
 						_this.pointLng = r.point.lng;
 						_this.pointLat = r.point.lat;
@@ -45,7 +49,7 @@
 				map.enableScrollWheelZoom(true)
 			},
 			setMapPoint:function () {
-			  axios.post('http://127.0.0.1:11008/mapDemo/getAllMapPoint.ypc', {
+			  axios.post('http://140.143.193.163:8080/mapDemo/getAllMapPoint.ypc', {
 					pointLng: this.pointLng,
 					pointLat: this.pointLat
 				}).then(function (response) {
@@ -55,11 +59,20 @@
 				});
 			},
 			getMapPoint:function () {
-			  axios.get('http://127.0.0.1:11008/mapDemo/getAllMapPoint.ypc', {
-					params: {
-						ID: 1
-					}
-				}).then(function (response) {
+				var _this = this;
+			  axios.get('/api/allPoints', {
+					//axios.get('http://140.143.193.163:8080/mapDemo/getAllMapPoint.ypc', {
+					params: {ID: 1}
+				}).then(function (res) {
+					debugger
+					_this.points=res.data.data;
+          for(let i=0;i<_this.points.length;i++){
+            var mk = new BMap.Marker({lat:_this.points[i].pointLat,lng:_this.points[i].pointLng});
+						_this.map.addOverlay(mk);
+						mk.setAnimation(BMAP_ANIMATION_BOUNCE);
+						_this.map.panTo(r.point);
+					}  
+
 					console.log(response);
 				}).catch(function (error) {
 					console.log(error);
