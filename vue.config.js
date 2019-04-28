@@ -1,15 +1,17 @@
 const express = require('express')
 const app = express()
  
-var allPoints = require('./src/datas/allPoints.json')  //本地json文件数据
+let allPoints = require('./src/datas/allPoints.json')  //本地json文件数据
+
+//let allPoints = require('http://140.143.193.163:8080/mapDemo/getAllMapPoint.ypc')
  
-var apiRoutes = express.Router();
+let apiRoutes = express.Router();
 app.use('/api',apiRoutes)
 module.exports = {
   devServer:{      
     before(app) {
         app.get('/api/allPoints', (req, res) => {
-             res.json({              
+             res.json({
                  errno: 0,   // 这里是你的json内容
                  data: allPoints
              })
