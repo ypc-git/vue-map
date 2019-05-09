@@ -15,91 +15,95 @@
 				pointLng:null,
 				pointLat:null,
 				points:null,
-				map:null
+				map:null,
+				pointName:null
 			}
 		},
 		props: {
 			msg: String
 		},
 		methods: {
-			createMap:function () {
+			getMapPoint:function () {
 				let _this = this;
-				this.map = new BMap.Map("allmap")
-				let _map = this.map;
-				let point = new BMap.Point(116.331398,39.897445);
-				let geolocation = new BMap.Geolocation();
-				let maxL = 10;
+			  axios.get('/api2/mapDemo/getAllMapPoint.ypc', {}).then(function (res) {
+				if(res.data.code == 1){
+					_this.points=JSON.parse(res.data.data);
+					for(let i=0;i<_this.points.length;i++){
+						var _point = new BMap.Point(_this.points[i].pointLng,_this.points[i].pointLat);
+						var mk1 = new BMap.Marker(_point);
+						_this.map.addOverlay(mk1);
+						mk1.setAnimation(BMAP_ANIMATION_BOUNCE);
+					}
+				}
+				}).catch(function (error) {
+					console.log(error);
+				});
+			},
+			createMap:function () {
+				var _this = this;
+				_this.map = new BMap.Map("allmap");
+				var point = new BMap.Point(116.404, 39.915);
+				_this.map.centerAndZoom(point,15);
+				_this.map.enableScrollWheelZoom(true);
+				var geolocation = new BMap.Geolocation();
 				geolocation.getCurrentPosition(function(r){
 					if(this.getStatus() == BMAP_STATUS_SUCCESS){
-						let myIcon = new BMap.Icon("http://api.map.baidu.com/img/markers.png", new BMap.Size(20,25));
-						let mk = new BMap.Marker(r.point,{icon:myIcon});
-						debugger
+						var myIcon = new BMap.Icon("dtqq.png", new BMap.Size(20,25));
+						var mk = new BMap.Marker(r.point,{icon:myIcon});
 						_this.pointLng = r.point.lng;
 						_this.pointLat = r.point.lat;
-						//_this.$options.methods.setMapPoint();
-						axios.get('/api/allPoints', {}).then(function (res) {
-						_this.points=res.data.data;
-						for(let i=0;i<_this.points.length;i++){
-							let _point = new BMap.Point(_this.points[i].pointLat,_this.points[i].pointLng);
-							let mk1 = new BMap.Marker(_point);
-							_map.addOverlay(mk1);
-							mk1.setAnimation(BMAP_ANIMATION_BOUNCE);
-							_map.panTo(_point);
-							debugger
-							let _maxL = map.getDistance({
-								lat:parseInt(_this.points[i].pointLat),
-								lng:parseInt(_this.points[i].pointLng)
-							},{
-								lat:parseInt(_this.points[i+1].pointLat),
-								lng:parseInt(_this.points[i+1].pointLng)
-							});
-						}
-						}).catch(function (error) {
-							console.log(error);
-						});
-						_map.centerAndZoom(point,maxL);
+						var point = new BMap.Point(_this.pointLng,_this.pointLat);
+						var mk = new BMap.Marker(point);
+						_this.map.addOverlay(mk);
+						mk.setAnimation(BMAP_ANIMATION_BOUNCE);
+						_this.map.panTo(point);
+						_this.$options.methods.setMapPoint(r.point.lng,r.point.lat);
 						//_this.$options.methods.getMapPoint();
 					} else {
 						console.log('failed:'+this.getStatus());
-					}        
-				},{enableHighAccuracy: true})
-				//开启鼠标滚轮缩放
-				_map.enableScrollWheelZoom(true)
+					}
+				},{enableHighAccuracy: true});
 			},
-			setMapPoint:function () {
-			    axios.post('http://140.143.193.163:8080/mapDemo/getAllMapPoint.ypc', {
-					pointLng: this.pointLng,
-					pointLat: this.pointLat
-				}).then(function (response) {
-					console.log(response);
+			setMapPoint:function (pointLng,pointLat) {
+				axios.post('/api2/mapDemo/setMapPoint.ypc?pointLng='+pointLng+'&pointLat='+pointLat,
+				).then(function (res) {
+					if(res.data.code == 1){
+						this.id = res.data.data;
+					}
+					console.log("res:"+res);
 				}).catch(function (error) {
 					console.log(error);
 				});
 			},
 			delMapPoint:function () {
-				axios.post('http://140.143.193.163:8080/mapDemo/delMapPoint.ypc', {
-					id: this.id,
-				}).then(function (response) {
-					console.log(response);
+				axios.post('/api2/mapDemo/delMapPoint.ypc&id='+this.id,
+				).then(function (res) {
+					console.log(res.data);
 				}).catch(function (error) {
 					console.log(error);
 				});
 			},
 			destroyed: function () {
-				axios.post('http://140.143.193.163:8080/mapDemo/delMapPoint.ypc', {
-					id: this.id,
-				}).then(function (response) {
-					console.log(response);
+				axios.post('/api2/mapDemo/delMapPoint.ypc&id='+this.id,
+				).then(function (res) {
+					console.log(res.data);
 				}).catch(function (error) {
 					console.log(error);
 				});
-                console.log("我已经离开了！");
+        console.log("我已经离开了！");
 				this.stopTimer();
 			},
 		},
+		created() {
+			this.getMapPoint();
+		},
+		beforeMount() {
+			//this.getMapPoint();
+		},
 		mounted () {
-			this.createMap()
-		}
+			//this.getMapPoint();
+			this.createMap();
+		},
 	}
 </script>
 <style scoped>
