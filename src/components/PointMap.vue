@@ -76,7 +76,7 @@
 				});
 			},
 			delMapPoint:function () {
-				axios.post('/api2/mapDemo/delMapPoint.ypc&id='+this.id,
+				axios.post('/api2/mapDemo/delMapPoint.ypc?id='+this.id,
 				).then(function (res) {
 					console.log(res.data);
 				}).catch(function (error) {
@@ -84,7 +84,7 @@
 				});
 			},
 			destroyed: function () {
-				axios.post('/api2/mapDemo/delMapPoint.ypc&id='+this.id,
+				axios.post('/api2/mapDemo/delMapPoint.ypc?id='+this.id,
 				).then(function (res) {
 					console.log(res.data);
 				}).catch(function (error) {
