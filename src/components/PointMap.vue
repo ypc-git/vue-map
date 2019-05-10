@@ -7,6 +7,7 @@
 <script>
 	import BMap from 'BMap'
 	import axios from 'axios'
+	import iconDtqq from '../assets/icons/hqq1.png'
 	export default {
 		name: 'PointMap',
 		data() {
@@ -24,15 +25,25 @@
 		},
 		methods: {
 			getMapPoint:function () {
-				let _this = this;
-			  axios.get('/api2/mapDemo/getAllMapPoint.ypc', {}).then(function (res) {
+			  let _this = this;
+			  axios.get('/api3/mapDemo/getAllMapPoint.ypc', {}).then(function (res) {
 				if(res.data.code == 1){
 					_this.points=JSON.parse(res.data.data);
+					var allOverlay = _this.map.getOverlays();
+					for (var i = 0; i < allOverlay.length -1; i++){
+						_this.map.removeOverlay(allOverlay[i]);
+					}
 					for(let i=0;i<_this.points.length;i++){
 						var _point = new BMap.Point(_this.points[i].pointLng,_this.points[i].pointLat);
-						var mk1 = new BMap.Marker(_point);
+						var myIcon = new BMap.Icon(iconDtqq, new BMap.Size(25,25));
+						var mk1 = new BMap.Marker(_point,{icon:myIcon});
+						var label = new BMap.Label(_this.points[i].name,{offset:new BMap.Size(30,0)});
+						label.setStyle({ color : "#2c3e50", fontSize : "12px",border:"#616b75",background:"#ffcaca"});
+						mk1.setLabel(label);
 						_this.map.addOverlay(mk1);
-						mk1.setAnimation(BMAP_ANIMATION_BOUNCE);
+						if(_this.id == _this.points[i].id){
+                           _this.map.panTo(_point);
+						}
 					}
 				}
 				}).catch(function (error) {
@@ -48,16 +59,17 @@
 				var geolocation = new BMap.Geolocation();
 				geolocation.getCurrentPosition(function(r){
 					if(this.getStatus() == BMAP_STATUS_SUCCESS){
-						var myIcon = new BMap.Icon("dtqq.png", new BMap.Size(20,25));
-						var mk = new BMap.Marker(r.point,{icon:myIcon});
 						_this.pointLng = r.point.lng;
 						_this.pointLat = r.point.lat;
+						var myIcon = new BMap.Icon(iconDtqq, new BMap.Size(25,25));
+						var label = new BMap.Label(_this.pointName,{offset:new BMap.Size(30,0)});
+						label.setStyle({ color : "#2c3e50", fontSize : "12px",border:"#616b75",background:"#ffcaca"});
 						var point = new BMap.Point(_this.pointLng,_this.pointLat);
-						var mk = new BMap.Marker(point);
+						var mk = new BMap.Marker(point,{icon:myIcon});
+						mk.setLabel(label);
 						_this.map.addOverlay(mk);
-						mk.setAnimation(BMAP_ANIMATION_BOUNCE);
 						_this.map.panTo(point);
-						_this.$options.methods.setMapPoint(r.point.lng,r.point.lat);
+						_this.setMapPoint(r.point.lng,r.point.lat);
 						//_this.$options.methods.getMapPoint();
 					} else {
 						console.log('failed:'+this.getStatus());
@@ -65,44 +77,43 @@
 				},{enableHighAccuracy: true});
 			},
 			setMapPoint:function (pointLng,pointLat) {
-				axios.post('/api2/mapDemo/setMapPoint.ypc?pointLng='+pointLng+'&pointLat='+pointLat,
-				).then(function (res) {
+				axios.post('/api3/mapDemo/setMapPoint.ypc?pointLng='+pointLng+'&pointLat='+pointLat+'&id='+this.id,
+				).then((res) => {
 					if(res.data.code == 1){
-						this.id = res.data.data;
+						this.id = res.data.data.id;
+						this.pointName = res.data.data.name;
 					}
-					console.log("res:"+res);
-				}).catch(function (error) {
+				}).catch((error) => {
 					console.log(error);
 				});
 			},
-			delMapPoint:function () {
-				axios.post('/api2/mapDemo/delMapPoint.ypc?id='+this.id,
-				).then(function (res) {
+			delMapPointById:function () {
+				axios.post('/api3/mapDemo/delMapPointById.ypc?id='+this.id,
+				).then((res) => {
 					console.log(res.data);
-				}).catch(function (error) {
+				}).catch((error) => {
 					console.log(error);
 				});
 			},
 			destroyed: function () {
-				axios.post('/api2/mapDemo/delMapPoint.ypc?id='+this.id,
-				).then(function (res) {
+				axios.post('/api3/mapDemo/delMapPointById.ypc?id='+this.id,
+				).then((res) => {
 					console.log(res.data);
-				}).catch(function (error) {
+				}).catch((error) => {
 					console.log(error);
 				});
-        console.log("我已经离开了！");
+                alert("我已经离开了！");
 				this.stopTimer();
 			},
-		},
-		created() {
-			this.getMapPoint();
 		},
 		beforeMount() {
 			//this.getMapPoint();
 		},
 		mounted () {
-			//this.getMapPoint();
 			this.createMap();
+			this.getMapPoint();
+			window.addEventListener( 'beforeunload', e => this.delMapPointById() );
+			setInterval(this.getMapPoint, 200000);
 		},
 	}
 </script>
