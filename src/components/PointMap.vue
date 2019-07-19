@@ -42,7 +42,7 @@
 						mk1.setLabel(label);
 						_this.map.addOverlay(mk1);
 						if(_this.id == _this.points[i].id){
-                           _this.map.panTo(_point);
+              _this.map.panTo(_point);
 						}
 					}
 				}
@@ -113,7 +113,7 @@
 			this.createMap();
 			this.getMapPoint();
 			window.addEventListener( 'beforeunload', e => this.delMapPointById() );
-			setInterval(this.getMapPoint, 200000);
+			setInterval(this.getMapPoint, 20000);
 		},
 	}
 </script>

@@ -5,6 +5,7 @@
 // let apiRoutes = express.Router();
 // app.use('/api',apiRoutes)
 module.exports = {
+  baseUrl:'/map/',
   devServer:{
     // before(app) {
     //   app.get('/api1/allPoints', (req, res) => {
